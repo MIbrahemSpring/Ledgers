@@ -62,12 +62,7 @@ public class LedgerController {
 	@Autowired
 	private ILedgerService _ledgerService;
 
-	/**
-	 * Create a new Ledger
-	 * 
-	 * @param apiLedger
-	 * @return LedgerResponseModel
-	 */
+	// create a new ledger
 	@PostMapping()
 	public ResponseEntity<Object> createLedger(@Valid @RequestBody ApiLedger apiLedger) {
 		logger.info("===================== start creating a ledger =====================");
@@ -114,10 +109,7 @@ public class LedgerController {
 					Errors.Headers_values_missing.toString(), "Header values are missing", HttpStatus.BAD_REQUEST);
 	}
 
-	/**
-	 * @param ledgerId
-	 * @return a single Ledger
-	 */
+	// retrieve a single ledger
 	@GetMapping("/{ledgerId}")
 	@CrossOrigin(origins = "http://localhost:4200/")
 	public ResponseEntity<Object> getLedger(@PathVariable String ledgerId) {
@@ -162,10 +154,7 @@ public class LedgerController {
 					Errors.Headers_values_missing.toString(), "Header values are missing", HttpStatus.BAD_REQUEST);
 	}
 
-	/**
-	 * @param filters parameters [period, limit, page]
-	 * @return list of ledgers
-	 */
+	// retrieve list of ledgers
 	@PostMapping("/list")
 	public ResponseEntity<Object> getLedgers(@Valid @RequestBody ApiLedgerFilter filters) {
 		logger.info("===================== start getting list of ledgers =====================");
@@ -217,12 +206,7 @@ public class LedgerController {
 					Errors.Headers_values_missing.toString(), "Header values are missing", HttpStatus.BAD_REQUEST);
 	}
 
-	/**
-	 * Debit Ledger
-	 * 
-	 * @param apiLedgerTxn
-	 * @return
-	 */
+	// create DEBIT Ledger
 	@PostMapping("/debit")
 	public ResponseEntity<Object> debitLedger(@Valid @RequestBody ApiLedgerTxn apiLedgerTxn) {
 		logger.info("===================== start debit a ledger =====================");
@@ -269,12 +253,7 @@ public class LedgerController {
 					Errors.Headers_values_missing.toString(), "Header values are missing", HttpStatus.BAD_REQUEST);
 	}
 
-	/**
-	 * Credit Ledger
-	 * 
-	 * @param apiLedgerTxn
-	 * @return
-	 */
+	// create CREDIT Ledger
 	@PostMapping("/credit")
 	public ResponseEntity<Object> creditLedger(@Valid @RequestBody ApiLedgerTxn apiLedgerTxn) {
 		logger.info("===================== start debit a ledger =====================");
@@ -321,6 +300,7 @@ public class LedgerController {
 					Errors.Headers_values_missing.toString(), "Header values are missing", HttpStatus.BAD_REQUEST);
 	}
 
+	// archive a ledger
 	@DeleteMapping("/{ledgerId}")
 	public ResponseEntity<Object> archiveLedger(@PathVariable String ledgerId) {
 		logger.info("===================== start archive a ledger =====================");
