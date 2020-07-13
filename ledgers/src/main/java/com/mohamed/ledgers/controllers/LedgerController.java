@@ -23,12 +23,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mohamed.ledgers.apiModels.ApiHeaders;
 import com.mohamed.ledgers.apiModels.ApiLedger;
+import com.mohamed.ledgers.apiModels.ApiLedgerFilter;
+import com.mohamed.ledgers.apiModels.ApiLedgerTxn;
 import com.mohamed.ledgers.dao.LedgerDTO;
+import com.mohamed.ledgers.dao.LedgerTxnDTO;
 import com.mohamed.ledgers.errors.Errors;
 import com.mohamed.ledgers.errors.IErrorServices;
 import com.mohamed.ledgers.services.ILedgerService;
 import com.mohamed.ledgers.services.IUtilities;
 import com.mohamed.ledgers.uiModels.LedgerResponseModel;
+import com.mohamed.ledgers.uiModels.LedgerTxnResponseModel;
 
 @RestController
 @RequestMapping("/ledger")
@@ -106,6 +110,10 @@ public class LedgerController {
 					Errors.Headers_values_missing.toString(), "Header values are missing", HttpStatus.BAD_REQUEST);
 	}
 
+	/**
+	 * @param ledgerId
+	 * @return a single Ledger
+	 */
 	@GetMapping("/{ledgerId}")
 	public ResponseEntity<Object> getLedger(@PathVariable String ledgerId) {
 		logger.info("===================== start getting a ledger =====================");
@@ -149,6 +157,10 @@ public class LedgerController {
 					Errors.Headers_values_missing.toString(), "Header values are missing", HttpStatus.BAD_REQUEST);
 	}
 
+	/**
+	 * @param filters parameters [period, limit, page]
+	 * @return list of ledgers
+	 */
 	@PostMapping("/list")
 	public ResponseEntity<Object> getLedgers(@Valid @RequestBody ApiLedgerFilter filters) {
 		logger.info("===================== start getting list of ledgers =====================");
@@ -189,10 +201,102 @@ public class LedgerController {
 					logger.info("-------------------- End get list of ledgers --------------------");
 					return new ResponseEntity<Object>(objMapper.writeValueAsString(ledgerResponseList), HttpStatus.OK);
 				} catch (JsonProcessingException e) {
-					logger.error("-------------------- Error while  archive the entry --------------------");
+					logger.error("-------------------- Error while  archive the ledger --------------------");
 					logger.error(e.getMessage());
 					return _errorServices.Error(Errors.Ledger_Failed.getCode(), Errors.Ledger_Failed.toString(),
 							"Failed to get list of ledgers", HttpStatus.BAD_REQUEST);
+				}
+			}
+		} else
+			return _errorServices.Error(Errors.Headers_values_missing.getCode(),
+					Errors.Headers_values_missing.toString(), "Header values are missing", HttpStatus.BAD_REQUEST);
+	}
+
+	@PostMapping("/debit")
+	public ResponseEntity<Object> debitLedger(@Valid @RequestBody ApiLedgerTxn apiLedgerTxn) {
+		logger.info("===================== start debit a ledger =====================");
+		// get request Header Data
+		ApiHeaders headers = _utilities.GetHeaderData(request);
+		if (headers != null && headers.getStatus_code() == null) {
+			ApiHeaders sessionHead = _utilities.GetSessionHeaderData(headers.getSession_token());
+			if (sessionHead == null) {
+				return _errorServices.Error(Errors.Invalid_API_Key.getCode(), Errors.Invalid_API_Key.toString(),
+						"Invalid Api key", HttpStatus.UNAUTHORIZED);
+			} else if (sessionHead != null && sessionHead.getStatus_code() != null) {
+				return _errorServices.Error(Errors.Invalid_API_Key.getCode(), Errors.Invalid_API_Key.toString(),
+						"Invalid session token", HttpStatus.UNAUTHORIZED);
+			} else if (!sessionHead.getApi_key().equals(headers.getAuthorization())) {
+				return _errorServices.Error(Errors.Invalid_API_Key.getCode(), Errors.Invalid_API_Key.toString(),
+						"Api key doesnt match with session token", HttpStatus.UNAUTHORIZED);
+			} else if (!sessionHead.getPayload_data().equals(headers.getPayload_data())) {
+				return _errorServices.Error(Errors.Invalid_API_Key.getCode(), Errors.Invalid_API_Key.toString(),
+						"Api key doesnt match with payload Data", HttpStatus.UNAUTHORIZED);
+			} else {
+
+				// fill LedgerTxn DTO
+				LedgerTxnDTO ledgerTxnDto = modelMapper.map(apiLedgerTxn, LedgerTxnDTO.class);
+
+				// debit journal
+				LedgerTxnDTO ReturnedLedgerTxnDto = _ledgerService.createLedgerTxn(ledgerTxnDto, "debit");
+
+				// fill the response
+				LedgerTxnResponseModel txnResponse = modelMapper.map(ReturnedLedgerTxnDto,
+						LedgerTxnResponseModel.class);
+				// return response
+				try {
+					logger.info("-------------------- End debit ledgers --------------------");
+					return new ResponseEntity<Object>(objMapper.writeValueAsString(txnResponse), HttpStatus.OK);
+				} catch (JsonProcessingException e) {
+					logger.error("-------------------- Error while  debiting the ledger --------------------");
+					logger.error(e.getMessage());
+					return _errorServices.Error(Errors.Ledger_Failed.getCode(), Errors.Ledger_Failed.toString(),
+							"Failed to debit a ledger", HttpStatus.BAD_REQUEST);
+				}
+			}
+		} else
+			return _errorServices.Error(Errors.Headers_values_missing.getCode(),
+					Errors.Headers_values_missing.toString(), "Header values are missing", HttpStatus.BAD_REQUEST);
+	}
+
+	@PostMapping("/credit")
+	public ResponseEntity<Object> creditLedger(@Valid @RequestBody ApiLedgerTxn apiLedgerTxn) {
+		logger.info("===================== start debit a ledger =====================");
+		// get request Header Data
+		ApiHeaders headers = _utilities.GetHeaderData(request);
+		if (headers != null && headers.getStatus_code() == null) {
+			ApiHeaders sessionHead = _utilities.GetSessionHeaderData(headers.getSession_token());
+			if (sessionHead == null) {
+				return _errorServices.Error(Errors.Invalid_API_Key.getCode(), Errors.Invalid_API_Key.toString(),
+						"Invalid Api key", HttpStatus.UNAUTHORIZED);
+			} else if (sessionHead != null && sessionHead.getStatus_code() != null) {
+				return _errorServices.Error(Errors.Invalid_API_Key.getCode(), Errors.Invalid_API_Key.toString(),
+						"Invalid session token", HttpStatus.UNAUTHORIZED);
+			} else if (!sessionHead.getApi_key().equals(headers.getAuthorization())) {
+				return _errorServices.Error(Errors.Invalid_API_Key.getCode(), Errors.Invalid_API_Key.toString(),
+						"Api key doesnt match with session token", HttpStatus.UNAUTHORIZED);
+			} else if (!sessionHead.getPayload_data().equals(headers.getPayload_data())) {
+				return _errorServices.Error(Errors.Invalid_API_Key.getCode(), Errors.Invalid_API_Key.toString(),
+						"Api key doesnt match with payload Data", HttpStatus.UNAUTHORIZED);
+			} else {
+
+				// fill LedgerTxn DTO
+				LedgerTxnDTO ledgerTxnDto = modelMapper.map(apiLedgerTxn, LedgerTxnDTO.class);
+
+				// debit journal
+				LedgerTxnDTO ReturnedLedgerTxnDto = _ledgerService.createLedgerTxn(ledgerTxnDto, "credit");
+
+				// fill the response
+				LedgerTxnResponseModel txnResponse = modelMapper.map(ReturnedLedgerTxnDto,
+						LedgerTxnResponseModel.class);
+				// return response
+				try {
+					logger.info("-------------------- End debit ledgers --------------------");
+					return new ResponseEntity<Object>(objMapper.writeValueAsString(txnResponse), HttpStatus.OK);
+				} catch (JsonProcessingException e) {
+					logger.error("-------------------- Error while  debiting the ledger --------------------");
+					logger.error(e.getMessage());
+					return _errorServices.Error(Errors.Ledger_Failed.getCode(), Errors.Ledger_Failed.toString(),
+							"Failed to debit a ledger", HttpStatus.BAD_REQUEST);
 				}
 			}
 		} else

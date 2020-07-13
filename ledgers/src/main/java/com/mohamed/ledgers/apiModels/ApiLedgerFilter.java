@@ -1,6 +1,4 @@
-package com.mohamed.ledgers.controllers;
-
-import com.mohamed.ledgers.apiModels.ApiLedgerPeriod;
+package com.mohamed.ledgers.apiModels;
 
 import lombok.Data;
 

@@ -11,12 +11,15 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import com.mohamed.ledgers.controllers.ApiLedgerFilter;
+import com.mohamed.ledgers.apiModels.ApiLedgerFilter;
 import com.mohamed.ledgers.dao.LedgerDTO;
+import com.mohamed.ledgers.dao.LedgerTxnDTO;
 import com.mohamed.ledgers.entities.LedgerEntity;
+import com.mohamed.ledgers.entities.LedgerTxnEntity;
 import com.mohamed.ledgers.exceptions.DataNotFoundException;
 import com.mohamed.ledgers.exceptions.PaginationLimitException;
 import com.mohamed.ledgers.repositories.LedgerRepository;
+import com.mohamed.ledgers.repositories.LedgerTxnRepository;
 import com.mohamed.ledgers.utils.Enums;
 
 @Service
@@ -27,6 +30,9 @@ public class LedgerService implements ILedgerService {
 
 	@Autowired
 	private LedgerRepository ledgerRepo;
+
+	@Autowired
+	private LedgerTxnRepository ledgerTxnRepo;
 
 	@Autowired
 	private IUtilities utilities;
@@ -99,6 +105,89 @@ public class LedgerService implements ILedgerService {
 		}
 
 		return filteredEntries;
+	}
+
+	@Override
+	public LedgerTxnDTO createLedgerTxn(LedgerTxnDTO ledgerTxnDto, String txnType) {
+		// validate ledger is valid
+		String ledgerId = ledgerTxnDto.getLedgerId();
+		LedgerEntity ledgerEntity = ledgerRepo.findByLedgerId(ledgerId);
+		String type = ledgerEntity.getType().toString();
+
+		switch (type) {
+		case "Assets":
+			if (txnType.equalsIgnoreCase("debit"))
+				ledgerEntity.setBalance(ledgerEntity.getBalance() + ledgerTxnDto.getAmount());
+			if (txnType.equalsIgnoreCase("credit"))
+				ledgerEntity.setBalance(ledgerEntity.getBalance() - ledgerTxnDto.getAmount());
+			else
+				ledgerEntity.setBalance(ledgerEntity.getBalance());
+			break;
+		case "Liabilities":
+			if (txnType.equalsIgnoreCase("debit"))
+				ledgerEntity.setBalance(ledgerEntity.getBalance() - ledgerTxnDto.getAmount());
+			if (txnType.equalsIgnoreCase("credit"))
+				ledgerEntity.setBalance(ledgerEntity.getBalance() + ledgerTxnDto.getAmount());
+			else
+				ledgerEntity.setBalance(ledgerEntity.getBalance());
+			break;
+		case "Revenues":
+			if (txnType.equalsIgnoreCase("debit"))
+				ledgerEntity.setBalance(ledgerEntity.getBalance() - ledgerTxnDto.getAmount());
+			if (txnType.equalsIgnoreCase("credit"))
+				ledgerEntity.setBalance(ledgerEntity.getBalance() + ledgerTxnDto.getAmount());
+			else
+				ledgerEntity.setBalance(ledgerEntity.getBalance());
+			break;
+		case "Expenses":
+			if (txnType.equalsIgnoreCase("debit"))
+				ledgerEntity.setBalance(ledgerEntity.getBalance() + ledgerTxnDto.getAmount());
+			if (txnType.equalsIgnoreCase("credit"))
+				ledgerEntity.setBalance(ledgerEntity.getBalance() - ledgerTxnDto.getAmount());
+			else
+				ledgerEntity.setBalance(ledgerEntity.getBalance());
+			break;
+		case "Capital":
+			if (txnType.equalsIgnoreCase("debit"))
+				ledgerEntity.setBalance(ledgerEntity.getBalance() - ledgerTxnDto.getAmount());
+			if (txnType.equalsIgnoreCase("credit"))
+				ledgerEntity.setBalance(ledgerEntity.getBalance() + ledgerTxnDto.getAmount());
+			else
+				ledgerEntity.setBalance(ledgerEntity.getBalance());
+			break;
+		case "Retained_Earnings":
+			if (txnType.equalsIgnoreCase("debit"))
+				ledgerEntity.setBalance(ledgerEntity.getBalance() - ledgerTxnDto.getAmount());
+			if (txnType.equalsIgnoreCase("credit"))
+				ledgerEntity.setBalance(ledgerEntity.getBalance() + ledgerTxnDto.getAmount());
+			else
+				ledgerEntity.setBalance(ledgerEntity.getBalance());
+			break;
+		case "Dividends":
+			if (txnType.equalsIgnoreCase("debit"))
+				ledgerEntity.setBalance(ledgerEntity.getBalance() + ledgerTxnDto.getAmount());
+			if (txnType.equalsIgnoreCase("credit"))
+				ledgerEntity.setBalance(ledgerEntity.getBalance() - ledgerTxnDto.getAmount());
+			else
+				ledgerEntity.setBalance(ledgerEntity.getBalance());
+			break;
+		default:
+			ledgerEntity = new LedgerEntity();
+			break;
+		}
+
+		ledgerEntity = ledgerRepo.save(ledgerEntity);
+
+		// save the txn into the DB
+		LedgerTxnEntity ledgerTxnEntity = new LedgerTxnEntity.LedgerTxnEntityBuilder()
+				.setAmount(ledgerTxnDto.getAmount()).setCreated(new Date()).setCurrency(ledgerTxnDto.getCurrency())
+				.setTxnId(txnType.equalsIgnoreCase("debit") ? utilities.generateRandomString(22, "debit_")
+						: utilities.generateRandomString(22, "credit_"))
+				.setLedgerId(ledgerId).setStatus(Enums.Status.Success.toString()).build();
+
+		LedgerTxnEntity savedTxnEntity = ledgerTxnRepo.save(ledgerTxnEntity);
+
+		return modelMapper.map(savedTxnEntity, LedgerTxnDTO.class);
 	}
 
 }
