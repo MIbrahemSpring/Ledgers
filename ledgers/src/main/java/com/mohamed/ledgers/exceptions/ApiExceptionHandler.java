@@ -69,4 +69,11 @@ public class ApiExceptionHandler {
 				HttpStatus.NOT_FOUND);
 	}
 
+	// Handling Ledger Archived Exceptions
+	@ExceptionHandler({ LedgerArchivedException.class })
+	public ResponseEntity<Object> handleLedgerArchivedException(LedgerArchivedException ex) throws Exception {
+		return _errorServices.Error(Errors.Ledger_Failed.getCode(), Errors.Ledger_Failed.toString(), ex.getMessage(),
+				HttpStatus.NOT_FOUND);
+	}
+
 }

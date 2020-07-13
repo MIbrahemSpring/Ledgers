@@ -15,4 +15,6 @@ public interface ILedgerService {
 	List<LedgerDTO> getLedgers(ApiLedgerFilter filters);
 	
 	LedgerTxnDTO createLedgerTxn(LedgerTxnDTO ledgerTxnDto, String txnType);
+	
+	LedgerDTO archiveLedger(String ledgerId);
 }

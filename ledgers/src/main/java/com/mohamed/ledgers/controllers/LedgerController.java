@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,8 +33,10 @@ import com.mohamed.ledgers.errors.Errors;
 import com.mohamed.ledgers.errors.IErrorServices;
 import com.mohamed.ledgers.services.ILedgerService;
 import com.mohamed.ledgers.services.IUtilities;
+import com.mohamed.ledgers.uiModels.LedgerArchivedResponseModel;
 import com.mohamed.ledgers.uiModels.LedgerResponseModel;
 import com.mohamed.ledgers.uiModels.LedgerTxnResponseModel;
+import com.mohamed.ledgers.utils.Enums;
 
 @RestController
 @RequestMapping("/ledger")
@@ -115,6 +119,7 @@ public class LedgerController {
 	 * @return a single Ledger
 	 */
 	@GetMapping("/{ledgerId}")
+	@CrossOrigin(origins = "http://localhost:4200/")
 	public ResponseEntity<Object> getLedger(@PathVariable String ledgerId) {
 		logger.info("===================== start getting a ledger =====================");
 
@@ -212,6 +217,12 @@ public class LedgerController {
 					Errors.Headers_values_missing.toString(), "Header values are missing", HttpStatus.BAD_REQUEST);
 	}
 
+	/**
+	 * Debit Ledger
+	 * 
+	 * @param apiLedgerTxn
+	 * @return
+	 */
 	@PostMapping("/debit")
 	public ResponseEntity<Object> debitLedger(@Valid @RequestBody ApiLedgerTxn apiLedgerTxn) {
 		logger.info("===================== start debit a ledger =====================");
@@ -258,6 +269,12 @@ public class LedgerController {
 					Errors.Headers_values_missing.toString(), "Header values are missing", HttpStatus.BAD_REQUEST);
 	}
 
+	/**
+	 * Credit Ledger
+	 * 
+	 * @param apiLedgerTxn
+	 * @return
+	 */
 	@PostMapping("/credit")
 	public ResponseEntity<Object> creditLedger(@Valid @RequestBody ApiLedgerTxn apiLedgerTxn) {
 		logger.info("===================== start debit a ledger =====================");
@@ -297,6 +314,50 @@ public class LedgerController {
 					logger.error(e.getMessage());
 					return _errorServices.Error(Errors.Ledger_Failed.getCode(), Errors.Ledger_Failed.toString(),
 							"Failed to debit a ledger", HttpStatus.BAD_REQUEST);
+				}
+			}
+		} else
+			return _errorServices.Error(Errors.Headers_values_missing.getCode(),
+					Errors.Headers_values_missing.toString(), "Header values are missing", HttpStatus.BAD_REQUEST);
+	}
+
+	@DeleteMapping("/{ledgerId}")
+	public ResponseEntity<Object> archiveLedger(@PathVariable String ledgerId) {
+		logger.info("===================== start archive a ledger =====================");
+		// get request Header Data
+		ApiHeaders headers = _utilities.GetHeaderData(request);
+		if (headers != null && headers.getStatus_code() == null) {
+			ApiHeaders sessionHead = _utilities.GetSessionHeaderData(headers.getSession_token());
+			if (sessionHead == null) {
+				return _errorServices.Error(Errors.Invalid_API_Key.getCode(), Errors.Invalid_API_Key.toString(),
+						"Invalid Api key", HttpStatus.UNAUTHORIZED);
+			} else if (sessionHead != null && sessionHead.getStatus_code() != null) {
+				return _errorServices.Error(Errors.Invalid_API_Key.getCode(), Errors.Invalid_API_Key.toString(),
+						"Invalid session token", HttpStatus.UNAUTHORIZED);
+			} else if (!sessionHead.getApi_key().equals(headers.getAuthorization())) {
+				return _errorServices.Error(Errors.Invalid_API_Key.getCode(), Errors.Invalid_API_Key.toString(),
+						"Api key doesnt match with session token", HttpStatus.UNAUTHORIZED);
+			} else if (!sessionHead.getPayload_data().equals(headers.getPayload_data())) {
+				return _errorServices.Error(Errors.Invalid_API_Key.getCode(), Errors.Invalid_API_Key.toString(),
+						"Api key doesnt match with payload Data", HttpStatus.UNAUTHORIZED);
+			} else {
+
+				LedgerDTO ledgerDto = _ledgerService.archiveLedger(ledgerId);
+				LedgerArchivedResponseModel response = null;
+				if (ledgerDto == null)
+					response = new LedgerArchivedResponseModel(ledgerId, Enums.Status.Failed.toString());
+				else
+					response = new LedgerArchivedResponseModel(ledgerId, Enums.Status.Success.toString());
+
+				// return response
+				try {
+					logger.info("-------------------- End archive ledgers --------------------");
+					return new ResponseEntity<Object>(objMapper.writeValueAsString(response), HttpStatus.OK);
+				} catch (JsonProcessingException e) {
+					logger.error("-------------------- Error while  archiving the ledger --------------------");
+					logger.error(e.getMessage());
+					return _errorServices.Error(Errors.Ledger_Failed.getCode(), Errors.Ledger_Failed.toString(),
+							"Failed to archive a ledger", HttpStatus.BAD_REQUEST);
 				}
 			}
 		} else

@@ -17,6 +17,7 @@ import com.mohamed.ledgers.dao.LedgerTxnDTO;
 import com.mohamed.ledgers.entities.LedgerEntity;
 import com.mohamed.ledgers.entities.LedgerTxnEntity;
 import com.mohamed.ledgers.exceptions.DataNotFoundException;
+import com.mohamed.ledgers.exceptions.LedgerArchivedException;
 import com.mohamed.ledgers.exceptions.PaginationLimitException;
 import com.mohamed.ledgers.repositories.LedgerRepository;
 import com.mohamed.ledgers.repositories.LedgerTxnRepository;
@@ -41,7 +42,7 @@ public class LedgerService implements ILedgerService {
 	public LedgerDTO createLedger(LedgerDTO ledgerDto) {
 		LedgerEntity ledgerEntity = modelMapper.map(ledgerDto, LedgerEntity.class);
 		ledgerEntity.setCreated(new Date());
-		ledgerEntity.setStatus(Enums.Status.Success.toString());
+		ledgerEntity.setStatus(Enums.Status.Active.toString());
 		ledgerEntity.setLedgerId(utilities.generateRandomString(22, "ledger_"));
 		ledgerEntity.setBalance(0);
 
@@ -112,6 +113,11 @@ public class LedgerService implements ILedgerService {
 		// validate ledger is valid
 		String ledgerId = ledgerTxnDto.getLedgerId();
 		LedgerEntity ledgerEntity = ledgerRepo.findByLedgerId(ledgerId);
+		if (ledgerEntity == null)
+			throw new DataNotFoundException("Ledger not found");
+
+		if (ledgerEntity.getStatus().equalsIgnoreCase("Archived"))
+			throw new LedgerArchivedException("This ledger is archived, Please re-activate the ledger.");
 		String type = ledgerEntity.getType().toString();
 
 		switch (type) {
@@ -188,6 +194,18 @@ public class LedgerService implements ILedgerService {
 		LedgerTxnEntity savedTxnEntity = ledgerTxnRepo.save(ledgerTxnEntity);
 
 		return modelMapper.map(savedTxnEntity, LedgerTxnDTO.class);
+	}
+
+	@Override
+	public LedgerDTO archiveLedger(String ledgerId) {
+		LedgerEntity ledgerEntity = ledgerRepo.findByLedgerId(ledgerId);
+		if (ledgerEntity == null)
+			throw new DataNotFoundException("Ledger not found");
+
+		ledgerEntity.setStatus(Enums.Status.Archived.toString());
+		LedgerEntity archivedLedgerEntity = ledgerRepo.save(ledgerEntity);
+		LedgerDTO ledgerDto = modelMapper.map(archivedLedgerEntity, LedgerDTO.class);
+		return ledgerDto;
 	}
 
 }
