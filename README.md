@@ -1,2 +1,9 @@
 # Ledgers
-Ledgers Api, you can create a journal, get a journal, get list of journals, archives journal, and create debit or credit a journal
+This is a simple RESTFull API project for managing your ledgers. you can create a new ledger, update your ledger, get a specific ledger, list your ledgers, and
+archive your ledger.
+
+# How to setup your Database 
+this API uses MySQL database.
+  ## you need to have mysql in your machine.
+  ## 
+please open up ( application.properties )
