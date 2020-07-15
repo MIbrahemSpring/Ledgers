@@ -31,7 +31,7 @@ public class Utilities implements IUtilities {
 	private ObjectMapper objMapper;
 	
 	@Value("${secret_key}")
-	private String secretKey;
+	private String secretKey; // JWT Secret Key
 
 	@Override
 	public ApiHeaders GetHeaderData(HttpServletRequest request) {
