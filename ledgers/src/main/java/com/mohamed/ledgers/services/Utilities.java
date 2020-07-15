@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.auth0.jwt.JWT;
@@ -28,6 +29,9 @@ public class Utilities implements IUtilities {
 
 	@Autowired
 	private ObjectMapper objMapper;
+	
+	@Value("${secret_key}")
+	private String secretKey;
 
 	@Override
 	public ApiHeaders GetHeaderData(HttpServletRequest request) {
@@ -64,7 +68,7 @@ public class Utilities implements IUtilities {
 	public ApiHeaders GetSessionHeaderData(String Session) {
 		ApiHeaders headers = new ApiHeaders();
 		ObjectMapper mapper = new ObjectMapper();
-		String s = "vaKvjbBUSNgehrmMJsNJVBcKwVLHKKzb";
+		String s = this.secretKey;
 		byte[] b = s.getBytes(StandardCharsets.US_ASCII);
 		String Ses;
 		try {

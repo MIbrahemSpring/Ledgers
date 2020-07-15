@@ -65,8 +65,6 @@ public class LedgerController {
 	// create a new ledger
 	@PostMapping()
 	public ResponseEntity<Object> createLedger(@Valid @RequestBody ApiLedger apiLedger) {
-		logger.info("===================== start creating a ledger =====================");
-
 		// get request Header Data
 		ApiHeaders headers = _utilities.GetHeaderData(request);
 		if (headers != null && headers.getStatus_code() == null) {
@@ -113,8 +111,6 @@ public class LedgerController {
 	@GetMapping("/{ledgerId}")
 	@CrossOrigin(origins = "http://localhost:4200/")
 	public ResponseEntity<Object> getLedger(@PathVariable String ledgerId) {
-		logger.info("===================== start getting a ledger =====================");
-
 		// get request Header Data
 		ApiHeaders headers = _utilities.GetHeaderData(request);
 		if (headers != null && headers.getStatus_code() == null) {
@@ -157,7 +153,6 @@ public class LedgerController {
 	// retrieve list of ledgers
 	@PostMapping("/list")
 	public ResponseEntity<Object> getLedgers(@Valid @RequestBody ApiLedgerFilter filters) {
-		logger.info("===================== start getting list of ledgers =====================");
 		// get request Header Data
 		ApiHeaders headers = _utilities.GetHeaderData(request);
 		if (headers != null && headers.getStatus_code() == null) {
@@ -209,7 +204,6 @@ public class LedgerController {
 	// create DEBIT Ledger
 	@PostMapping("/debit")
 	public ResponseEntity<Object> debitLedger(@Valid @RequestBody ApiLedgerTxn apiLedgerTxn) {
-		logger.info("===================== start debit a ledger =====================");
 		// get request Header Data
 		ApiHeaders headers = _utilities.GetHeaderData(request);
 		if (headers != null && headers.getStatus_code() == null) {
@@ -256,7 +250,6 @@ public class LedgerController {
 	// create CREDIT Ledger
 	@PostMapping("/credit")
 	public ResponseEntity<Object> creditLedger(@Valid @RequestBody ApiLedgerTxn apiLedgerTxn) {
-		logger.info("===================== start debit a ledger =====================");
 		// get request Header Data
 		ApiHeaders headers = _utilities.GetHeaderData(request);
 		if (headers != null && headers.getStatus_code() == null) {
@@ -303,7 +296,6 @@ public class LedgerController {
 	// archive a ledger
 	@DeleteMapping("/{ledgerId}")
 	public ResponseEntity<Object> archiveLedger(@PathVariable String ledgerId) {
-		logger.info("===================== start archive a ledger =====================");
 		// get request Header Data
 		ApiHeaders headers = _utilities.GetHeaderData(request);
 		if (headers != null && headers.getStatus_code() == null) {
