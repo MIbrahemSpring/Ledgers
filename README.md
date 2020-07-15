@@ -6,9 +6,9 @@ This is a simple RESTFull API project for managing your ledgers. you can create 
  * You need to have MySQL in your machine.
  * you can use your Database username and password, database name in the (application.properties)
  
-  spring.datasource.username=
-  spring.datasource.password=
-  spring.datasource.url=jdbc:mysql://localhost:3306/database_name
+  * spring.datasource.username=
+  * spring.datasource.password=
+  * spring.datasource.url=jdbc:mysql://localhost:3306/database_name
   
 ### API endpoints Provided in this project:
  * CREATE   [POST]      localhost:8080/ledger 
