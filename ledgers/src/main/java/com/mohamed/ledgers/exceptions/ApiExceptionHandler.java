@@ -76,4 +76,11 @@ public class ApiExceptionHandler {
 				HttpStatus.NOT_FOUND);
 	}
 
+	// Handling Ledger Already archived Exceptions
+	@ExceptionHandler(value = LedgerAlreadyArchivedException.class)
+	public ResponseEntity<Object> handleArchivedLedgerException(LedgerAlreadyArchivedException ex, WebRequest req) {
+		ErrorMessage errorMessage = new ErrorMessage(new Date(), ex.getMessage());
+		return new ResponseEntity<>(errorMessage, new HttpHeaders(), HttpStatus.BAD_REQUEST);
+	}
+
 }

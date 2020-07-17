@@ -40,6 +40,7 @@ import com.mohamed.ledgers.utils.Enums;
 
 @RestController
 @RequestMapping("/ledger")
+@CrossOrigin(origins = "*")
 public class LedgerController {
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -315,6 +316,50 @@ public class LedgerController {
 			} else {
 
 				LedgerDTO ledgerDto = _ledgerService.archiveLedger(ledgerId);
+				LedgerArchivedResponseModel response = null;
+				if (ledgerDto == null)
+					response = new LedgerArchivedResponseModel(ledgerId, Enums.Status.Failed.toString());
+				else
+					response = new LedgerArchivedResponseModel(ledgerId, Enums.Status.Success.toString());
+
+				// return response
+				try {
+					logger.info("-------------------- End archive ledgers --------------------");
+					return new ResponseEntity<Object>(objMapper.writeValueAsString(response), HttpStatus.OK);
+				} catch (JsonProcessingException e) {
+					logger.error("-------------------- Error while  archiving the ledger --------------------");
+					logger.error(e.getMessage());
+					return _errorServices.Error(Errors.Ledger_Failed.getCode(), Errors.Ledger_Failed.toString(),
+							"Failed to archive a ledger", HttpStatus.BAD_REQUEST);
+				}
+			}
+		} else
+			return _errorServices.Error(Errors.Headers_values_missing.getCode(),
+					Errors.Headers_values_missing.toString(), "Header values are missing", HttpStatus.BAD_REQUEST);
+	}
+
+	// archive a ledger
+	@GetMapping("/{ledgerId}/activate")
+	public ResponseEntity<Object> activateLedger(@PathVariable String ledgerId) {
+		// get request Header Data
+		ApiHeaders headers = _utilities.GetHeaderData(request);
+		if (headers != null && headers.getStatus_code() == null) {
+			ApiHeaders sessionHead = _utilities.GetSessionHeaderData(headers.getSession_token());
+			if (sessionHead == null) {
+				return _errorServices.Error(Errors.Invalid_API_Key.getCode(), Errors.Invalid_API_Key.toString(),
+						"Invalid Api key", HttpStatus.UNAUTHORIZED);
+			} else if (sessionHead != null && sessionHead.getStatus_code() != null) {
+				return _errorServices.Error(Errors.Invalid_API_Key.getCode(), Errors.Invalid_API_Key.toString(),
+						"Invalid session token", HttpStatus.UNAUTHORIZED);
+			} else if (!sessionHead.getApi_key().equals(headers.getAuthorization())) {
+				return _errorServices.Error(Errors.Invalid_API_Key.getCode(), Errors.Invalid_API_Key.toString(),
+						"Api key doesnt match with session token", HttpStatus.UNAUTHORIZED);
+			} else if (!sessionHead.getPayload_data().equals(headers.getPayload_data())) {
+				return _errorServices.Error(Errors.Invalid_API_Key.getCode(), Errors.Invalid_API_Key.toString(),
+						"Api key doesnt match with payload Data", HttpStatus.UNAUTHORIZED);
+			} else {
+
+				LedgerDTO ledgerDto = _ledgerService.activateLedger(ledgerId);
 				LedgerArchivedResponseModel response = null;
 				if (ledgerDto == null)
 					response = new LedgerArchivedResponseModel(ledgerId, Enums.Status.Failed.toString());

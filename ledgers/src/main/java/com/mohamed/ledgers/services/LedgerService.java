@@ -17,6 +17,7 @@ import com.mohamed.ledgers.dao.LedgerTxnDTO;
 import com.mohamed.ledgers.entities.LedgerEntity;
 import com.mohamed.ledgers.entities.LedgerTxnEntity;
 import com.mohamed.ledgers.exceptions.DataNotFoundException;
+import com.mohamed.ledgers.exceptions.LedgerAlreadyArchivedException;
 import com.mohamed.ledgers.exceptions.LedgerArchivedException;
 import com.mohamed.ledgers.exceptions.PaginationLimitException;
 import com.mohamed.ledgers.repositories.LedgerRepository;
@@ -201,8 +202,22 @@ public class LedgerService implements ILedgerService {
 		LedgerEntity ledgerEntity = ledgerRepo.findByLedgerId(ledgerId);
 		if (ledgerEntity == null)
 			throw new DataNotFoundException("Ledger not found");
-
+		if (ledgerEntity.getStatus().equalsIgnoreCase(Enums.Status.Archived.toString()))
+			throw new LedgerAlreadyArchivedException("This ledger is Already archived.");
 		ledgerEntity.setStatus(Enums.Status.Archived.toString());
+		LedgerEntity archivedLedgerEntity = ledgerRepo.save(ledgerEntity);
+		LedgerDTO ledgerDto = modelMapper.map(archivedLedgerEntity, LedgerDTO.class);
+		return ledgerDto;
+	}
+
+	@Override
+	public LedgerDTO activateLedger(String ledgerId) {
+		LedgerEntity ledgerEntity = ledgerRepo.findByLedgerId(ledgerId);
+		if (ledgerEntity == null)
+			throw new DataNotFoundException("Ledger not found");
+		if (ledgerEntity.getStatus().equalsIgnoreCase(Enums.Status.Active.toString()))
+			throw new LedgerAlreadyArchivedException("This ledger is Already Active.");
+		ledgerEntity.setStatus(Enums.Status.Active.toString());
 		LedgerEntity archivedLedgerEntity = ledgerRepo.save(ledgerEntity);
 		LedgerDTO ledgerDto = modelMapper.map(archivedLedgerEntity, LedgerDTO.class);
 		return ledgerDto;

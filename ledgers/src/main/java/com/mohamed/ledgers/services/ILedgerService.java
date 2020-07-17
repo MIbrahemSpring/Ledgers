@@ -17,4 +17,6 @@ public interface ILedgerService {
 	LedgerTxnDTO createLedgerTxn(LedgerTxnDTO ledgerTxnDto, String txnType);
 	
 	LedgerDTO archiveLedger(String ledgerId);
+	
+	LedgerDTO activateLedger(String ledgerId); 
 }
