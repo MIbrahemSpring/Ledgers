@@ -40,7 +40,6 @@ import com.mohamed.ledgers.utils.Enums;
 
 @RestController
 @RequestMapping("/ledger")
-@CrossOrigin(origins = "*")
 public class LedgerController {
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -66,46 +65,26 @@ public class LedgerController {
 	// create a new ledger
 	@PostMapping()
 	public ResponseEntity<Object> createLedger(@Valid @RequestBody ApiLedger apiLedger) {
-		// get request Header Data
-		ApiHeaders headers = _utilities.GetHeaderData(request);
-		if (headers != null && headers.getStatus_code() == null) {
-			ApiHeaders sessionHead = _utilities.GetSessionHeaderData(headers.getSession_token());
-			if (sessionHead == null) {
-				return _errorServices.Error(Errors.Invalid_API_Key.getCode(), Errors.Invalid_API_Key.toString(),
-						"Invalid Api key", HttpStatus.UNAUTHORIZED);
-			} else if (sessionHead != null && sessionHead.getStatus_code() != null) {
-				return _errorServices.Error(Errors.Invalid_API_Key.getCode(), Errors.Invalid_API_Key.toString(),
-						"Invalid session token", HttpStatus.UNAUTHORIZED);
-			} else if (!sessionHead.getApi_key().equals(headers.getAuthorization())) {
-				return _errorServices.Error(Errors.Invalid_API_Key.getCode(), Errors.Invalid_API_Key.toString(),
-						"Api key doesnt match with session token", HttpStatus.UNAUTHORIZED);
-			} else if (!sessionHead.getPayload_data().equals(headers.getPayload_data())) {
-				return _errorServices.Error(Errors.Invalid_API_Key.getCode(), Errors.Invalid_API_Key.toString(),
-						"Api key doesnt match with payload Data", HttpStatus.UNAUTHORIZED);
-			} else {
 
-				// fill the LedgerDTO from the APILedger request body
-				LedgerDTO ledgerDto = modelMapper.map(apiLedger, LedgerDTO.class);
+		// fill the LedgerDTO from the APILedger request body
+		LedgerDTO ledgerDto = modelMapper.map(apiLedger, LedgerDTO.class);
 
-				// create a new ledger
-				LedgerDTO storedLedger = _ledgerService.createLedger(ledgerDto);
+		// create a new ledger
+		LedgerDTO storedLedger = _ledgerService.createLedger(ledgerDto);
 
-				// fill the response
-				LedgerResponseModel response = modelMapper.map(storedLedger, LedgerResponseModel.class);
+		// fill the response
+		LedgerResponseModel response = modelMapper.map(storedLedger, LedgerResponseModel.class);
 
-				// return the response
-				try {
-					return new ResponseEntity<>(objMapper.writeValueAsString(response), HttpStatus.OK);
-				} catch (JsonProcessingException e) {
-					logger.error("-------------------- Error while creating a new ledger --------------------");
-					logger.error(e.getMessage());
-					return _errorServices.Error(Errors.Ledger_Failed.getCode(), Errors.Ledger_Failed.toString(),
-							"Failed to create a new Ledger", HttpStatus.BAD_REQUEST);
-				}
-			}
-		} else
-			return _errorServices.Error(Errors.Headers_values_missing.getCode(),
-					Errors.Headers_values_missing.toString(), "Header values are missing", HttpStatus.BAD_REQUEST);
+		// return the response
+		try {
+			return new ResponseEntity<>(objMapper.writeValueAsString(response), HttpStatus.OK);
+		} catch (JsonProcessingException e) {
+			logger.error("-------------------- Error while creating a new ledger --------------------");
+			logger.error(e.getMessage());
+			return _errorServices.Error(Errors.Ledger_Failed.getCode(), Errors.Ledger_Failed.toString(),
+					"Failed to create a new Ledger", HttpStatus.BAD_REQUEST);
+		}
+
 	}
 
 	// retrieve a single ledger
